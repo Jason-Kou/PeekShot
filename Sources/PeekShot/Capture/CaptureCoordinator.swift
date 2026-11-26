@@ -1,6 +1,6 @@
 import AppKit
 
-/// Runs the capture flows: area, window, full screen, previous area and self-timer.
+/// Runs the capture flows: area, window, full screen, previous area, self-timer and text recognition.
 @MainActor
 final class CaptureCoordinator {
     static let shared = CaptureCoordinator()
@@ -10,13 +10,21 @@ final class CaptureCoordinator {
     /// The last selected area, in view coordinates of its display.
     private var lastArea: (displayID: CGDirectDisplayID, rect: CGRect)?
 
+    /// What happens with the selected region.
+    private enum Purpose {
+        case image
+        case timer(seconds: Int)
+        case text
+    }
+
     func perform(_ action: HotKeyAction) {
         switch action {
-        case .captureArea: startSelection(mode: .area)
-        case .captureWindow: startSelection(mode: .window)
+        case .captureArea: startSelection(mode: .area, purpose: .image)
+        case .captureWindow: startSelection(mode: .window, purpose: .image)
         case .captureFullscreen: captureFullscreen()
         case .capturePreviousArea: capturePreviousArea()
-        case .captureTimer: startSelection(mode: .area, timerSeconds: Prefs.timerSeconds)
+        case .captureTimer: startSelection(mode: .area, purpose: .timer(seconds: Prefs.timerSeconds))
+        case .captureText: startSelection(mode: .area, purpose: .text)
         case .openHistory: HistoryWindowController.show()
         }
     }
@@ -25,7 +33,7 @@ final class CaptureCoordinator {
 
     // MARK: Flows
 
-    private func startSelection(mode: SelectionMode, timerSeconds: Int? = nil) {
+    private func startSelection(mode: SelectionMode, purpose: Purpose) {
         guard !busy, ensurePermission() else { return }
         busy = true
         Task {
@@ -37,7 +45,7 @@ final class CaptureCoordinator {
                 self.session = session
                 session.begin { [weak self] outcome in
                     self?.session = nil
-                    self?.handle(outcome, timerSeconds: timerSeconds)
+                    self?.handle(outcome, purpose: purpose)
                 }
             } catch {
                 fail(error)
@@ -45,21 +53,25 @@ final class CaptureCoordinator {
         }
     }
 
-    private func handle(_ outcome: SelectionOutcome, timerSeconds: Int?) {
-        switch outcome {
-        case .cancelled:
+    private func handle(_ outcome: SelectionOutcome, purpose: Purpose) {
+        switch (outcome, purpose) {
+        case (.cancelled, _):
             busy = false
-        case let .area(snapshot, rect):
+        case let (.area(snapshot, rect), .text):
+            recognizeText(in: crop(snapshot, viewRect: rect))
+        case let (.window(snapshot, window), .text):
+            let viewRect = Geometry.viewRect(forGlobalRect: window.frame, displayBounds: snapshot.displayBounds)
+            recognizeText(in: crop(snapshot, viewRect: viewRect))
+        case let (.area(snapshot, rect), .timer(seconds)):
             lastArea = (snapshot.displayID, rect)
-            if let timerSeconds {
-                let screenRect = rect.offsetBy(dx: snapshot.screen.frame.minX, dy: snapshot.screen.frame.minY)
-                CountdownHUD.run(seconds: timerSeconds, around: screenRect) { [weak self] in
-                    self?.captureLive(displayID: snapshot.displayID, rect: rect)
-                }
-            } else {
-                deliver(crop(snapshot, viewRect: rect), from: snapshot)
+            let screenRect = rect.offsetBy(dx: snapshot.screen.frame.minX, dy: snapshot.screen.frame.minY)
+            CountdownHUD.run(seconds: seconds, around: screenRect) { [weak self] in
+                self?.captureLive(displayID: snapshot.displayID, rect: rect)
             }
-        case let .window(snapshot, window):
+        case let (.area(snapshot, rect), .image):
+            lastArea = (snapshot.displayID, rect)
+            deliver(crop(snapshot, viewRect: rect), from: snapshot)
+        case let (.window(snapshot, window), _):
             Task {
                 var image: CGImage?
                 if let captured = try? await ScreenCapturer.captureWindow(id: window.id) {
@@ -70,6 +82,22 @@ final class CaptureCoordinator {
                     image = crop(snapshot, viewRect: viewRect)
                 }
                 deliver(image, from: snapshot)
+            }
+        }
+    }
+
+    /// Copies the text found in the image to the clipboard.
+    private func recognizeText(in image: CGImage?) {
+        busy = false
+        guard let image else { return }
+        Task {
+            let text = await TextRecognizer.recognize(in: image)
+            if text.isEmpty {
+                Toast.show("No text found")
+            } else {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(text, forType: .string)
+                Toast.show("Text copied to clipboard")
             }
         }
     }

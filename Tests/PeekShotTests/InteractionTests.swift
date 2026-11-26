@@ -314,7 +314,12 @@ final class InteractionTests: XCTestCase {
         let settings = try XCTUnwrap(NSApp.windows.first { $0.title == "PeekShot Settings" && $0.isVisible })
         RunLoop.main.run(until: Date().addingTimeInterval(0.3))
         save(viewSnapshot(of: try XCTUnwrap(settings.contentView)), "settings-window")
+        SettingsWindowController.show(tab: .about)
+        XCTAssertEqual(SettingsNavigation.shared.tab, .about)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        save(viewSnapshot(of: try XCTUnwrap(settings.contentView)), "settings-about")
         settings.close()
+        SettingsNavigation.shared.tab = .general
 
         HistoryWindowController.show()
         let history = try XCTUnwrap(NSApp.windows.first { $0.title == "Capture History" && $0.isVisible })
@@ -340,7 +345,7 @@ final class InteractionTests: XCTestCase {
         save(viewSnapshot(of: footer), "editor-footer")
 
         let item = CaptureItem(image: testPattern(width: 1200, height: 800), scale: 2)
-        let card = QuickAccessCardView(item: item, frame: CGRect(x: 0, y: 0, width: 216, height: 136))
+        let card = QuickAccessCardView(item: item, frame: CGRect(origin: .zero, size: QuickAccessController.cardSize))
         let cardWindow = host(card, size: card.frame.size)
         defer { cardWindow.close() }
         save(viewSnapshot(of: card), "card-idle")

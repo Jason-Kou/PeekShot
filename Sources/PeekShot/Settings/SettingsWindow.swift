@@ -2,11 +2,22 @@ import AppKit
 import ServiceManagement
 import SwiftUI
 
+enum SettingsTab: Hashable {
+    case general, shortcuts, about
+}
+
+/// Lets code outside the SwiftUI hierarchy pick the visible settings tab.
+final class SettingsNavigation: ObservableObject {
+    static let shared = SettingsNavigation()
+    @Published var tab = SettingsTab.general
+}
+
 @MainActor
 enum SettingsWindowController {
     private static var window: NSWindow?
 
-    static func show() {
+    static func show(tab: SettingsTab? = nil) {
+        if let tab { SettingsNavigation.shared.tab = tab }
         if window == nil {
             let created = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 520, height: 566),
                                    styleMask: [.titled, .closable], backing: .buffered, defer: false)
@@ -22,11 +33,14 @@ enum SettingsWindowController {
 }
 
 struct SettingsView: View {
+    @ObservedObject private var navigation = SettingsNavigation.shared
+
     var body: some View {
         VStack(spacing: 0) {
-            TabView {
-                GeneralSettings().tabItem { Label("General", systemImage: "gearshape") }
-                ShortcutSettings().tabItem { Label("Shortcuts", systemImage: "keyboard") }
+            TabView(selection: $navigation.tab) {
+                GeneralSettings().tabItem { Label("General", systemImage: "gearshape") }.tag(SettingsTab.general)
+                ShortcutSettings().tabItem { Label("Shortcuts", systemImage: "keyboard") }.tag(SettingsTab.shortcuts)
+                AboutSettings().tabItem { Label("About", systemImage: "info.circle") }.tag(SettingsTab.about)
             }
             Divider()
             // The same entries as the menu bar icon, for when that icon is not reachable.

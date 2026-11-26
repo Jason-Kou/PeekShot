@@ -23,12 +23,14 @@ targets:
       path: Config/Info.plist
       properties:
         CFBundleDisplayName: PeekShot
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
         CFBundleURLTypes:
           - CFBundleURLName: app.peekshot.PeekShot
             CFBundleURLSchemes: [$(PEEKSHOT_URL_SCHEME)]
         LSApplicationCategoryType: public.app-category.utilities
-        NSHumanReadableCopyright: ""
+        NSHumanReadableCopyright: "Copyright © 2026 Jason Kou. MIT License."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.peekshot.PeekShot

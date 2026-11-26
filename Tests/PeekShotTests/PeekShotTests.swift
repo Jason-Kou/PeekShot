@@ -272,3 +272,48 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(store.entries.count, 1, "zero days keeps everything")
     }
 }
+
+final class TextRecognizerTests: XCTestCase {
+    func testRecognizesRenderedText() async throws {
+        // Dark text on white, large enough for accurate recognition.
+        let width = 900, height = 220
+        let ctx = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                            space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        ctx.setFillColor(CGColor(gray: 1, alpha: 1))
+        ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
+        NSAttributedString(string: "PeekShot reads 12345", attributes: [
+            .font: NSFont.systemFont(ofSize: 64, weight: .medium), .foregroundColor: NSColor.black,
+        ]).draw(at: CGPoint(x: 40, y: 70))
+        NSGraphicsContext.restoreGraphicsState()
+
+        let text = await TextRecognizer.recognize(in: ctx.makeImage()!)
+        XCTAssertTrue(text.contains("PeekShot"), "got: \(text)")
+        XCTAssertTrue(text.contains("12345"), "got: \(text)")
+    }
+
+    func testBlankImageYieldsNoText() async {
+        let text = await TextRecognizer.recognize(in: solidImage(width: 200, height: 100))
+        XCTAssertEqual(text, "")
+    }
+}
+
+final class QuickAccessThumbnailTests: XCTestCase {
+    @MainActor
+    func testThumbnailFillsCardAndKeepsSmallCapturesCentered() throws {
+        let size = QuickAccessController.cardSize
+        // A large capture fills the whole card.
+        let large = CaptureItem(image: solidImage(width: 2000, height: 1000, gray: 1), scale: 2)
+        let filled = try XCTUnwrap(QuickAccessCardView.thumbnail(of: large, size: size, scale: 2))
+        XCTAssertEqual(filled.width, Int(size.width) * 2)
+        XCTAssertEqual(pixel(filled, x: 2, y: 2)[0], 255)
+
+        // A small capture keeps its natural size on a dark backdrop.
+        let small = CaptureItem(image: solidImage(width: 40, height: 40, gray: 1), scale: 2)
+        let centered = try XCTUnwrap(QuickAccessCardView.thumbnail(of: small, size: size, scale: 2))
+        XCTAssertLessThan(pixel(centered, x: 2, y: 2)[0], 60)
+        XCTAssertEqual(pixel(centered, x: centered.width / 2, y: centered.height / 2)[0], 255)
+    }
+}

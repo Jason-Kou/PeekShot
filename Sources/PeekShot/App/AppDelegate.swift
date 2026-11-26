@@ -53,16 +53,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// URL scheme for scripts and launchers: `open peekshot://capture-area`.
-    /// Hosts: capture-area, capture-window, capture-fullscreen, capture-previous-area, capture-timer, history, settings.
+    /// Hosts: capture-area, capture-window, capture-fullscreen, capture-previous-area, capture-timer,
+    /// capture-text, history, settings, about.
     func application(_ application: NSApplication, open urls: [URL]) {
         let actions: [String: HotKeyAction] = [
             "capture-area": .captureArea, "capture-window": .captureWindow,
             "capture-fullscreen": .captureFullscreen, "capture-previous-area": .capturePreviousArea,
-            "capture-timer": .captureTimer, "history": .openHistory,
+            "capture-timer": .captureTimer, "capture-text": .captureText, "history": .openHistory,
         ]
         for url in urls {
             if url.host == "settings" {
                 SettingsWindowController.show()
+            } else if url.host == "about" {
+                SettingsWindowController.show(tab: .about)
             } else if let host = url.host, let action = actions[host] {
                 CaptureCoordinator.shared.perform(action)
             }
@@ -102,35 +105,74 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
 
     override init() {
         super.init()
-        statusItem.button?.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "PeekShot")
+        statusItem.button?.image = Self.statusIcon()
         menu.delegate = self
         statusItem.menu = menu
+    }
+
+    /// The app icon's two corner brackets as a template image, so the menu bar matches the app.
+    static func statusIcon() -> NSImage {
+        let image = NSImage(size: CGSize(width: 18, height: 18), flipped: false) { rect in
+            let frame = rect.insetBy(dx: 3.5, dy: 3.5)
+            let arm: CGFloat = 6, radius: CGFloat = 2
+            let path = NSBezierPath()
+            // Top-left bracket.
+            path.move(to: CGPoint(x: frame.minX + arm, y: frame.maxY))
+            path.appendArc(from: CGPoint(x: frame.minX, y: frame.maxY),
+                           to: CGPoint(x: frame.minX, y: frame.maxY - arm), radius: radius)
+            path.line(to: CGPoint(x: frame.minX, y: frame.maxY - arm))
+            // Bottom-right bracket.
+            path.move(to: CGPoint(x: frame.maxX - arm, y: frame.minY))
+            path.appendArc(from: CGPoint(x: frame.maxX, y: frame.minY),
+                           to: CGPoint(x: frame.maxX, y: frame.minY + arm), radius: radius)
+            path.line(to: CGPoint(x: frame.maxX, y: frame.minY + arm))
+            path.lineWidth = 2.2
+            path.lineCapStyle = .round
+            path.lineJoinStyle = .round
+            NSColor.black.setStroke()
+            path.stroke()
+            return true
+        }
+        image.isTemplate = true
+        image.accessibilityDescription = "PeekShot"
+        return image
     }
 
     /// Rebuilt on every open so shortcut hints follow the settings.
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
-        let captures: [HotKeyAction] = [.captureArea, .captureWindow, .captureFullscreen, .capturePreviousArea, .captureTimer]
-        for action in captures {
-            let title = action == .captureTimer ? "Self-Timer (\(Prefs.timerSeconds)s)" : action.title
-            let item = add(title, #selector(runHotKeyAction(_:)), shortcut: Prefs.keyCombo(for: action))
-            item.representedObject = action.rawValue
-            if action == .capturePreviousArea { item.isEnabled = CaptureCoordinator.shared.hasPreviousArea }
+        // The menu disables items itself only when asked; "Capture Previous Area" depends on state.
+        menu.autoenablesItems = false
+        let groups: [[HotKeyAction]] = [
+            [.captureArea, .captureWindow, .captureFullscreen, .capturePreviousArea],
+            [.captureTimer, .captureText],
+        ]
+        for group in groups {
+            for action in group {
+                let title = action == .captureTimer ? "Self-Timer (\(Prefs.timerSeconds)s)" : action.title
+                let item = add(title, #selector(runHotKeyAction(_:)), symbol: action.symbol,
+                               shortcut: Prefs.keyCombo(for: action))
+                item.representedObject = action.rawValue
+                if action == .capturePreviousArea { item.isEnabled = CaptureCoordinator.shared.hasPreviousArea }
+            }
+            menu.addItem(.separator())
         }
+        add("Pin Image from Clipboard", #selector(pinClipboard), symbol: "pin")
+        add("Open Image to Annotate…", #selector(openImage), symbol: "pencil.and.outline")
+        add(HotKeyAction.openHistory.title, #selector(runHotKeyAction(_:)), symbol: HotKeyAction.openHistory.symbol,
+            shortcut: Prefs.keyCombo(for: .openHistory)).representedObject = HotKeyAction.openHistory.rawValue
         menu.addItem(.separator())
-        add("Pin Image from Clipboard", #selector(pinClipboard))
-        add("Open Image to Annotate…", #selector(openImage))
-        add("Capture History", #selector(runHotKeyAction(_:)), shortcut: Prefs.keyCombo(for: .openHistory))
-            .representedObject = HotKeyAction.openHistory.rawValue
+        add("Settings…", #selector(openSettings), symbol: "gearshape")
+        add("About PeekShot", #selector(openAbout), symbol: "info.circle")
         menu.addItem(.separator())
-        add("Settings…", #selector(openSettings))
-        add("Quit PeekShot", #selector(quit))
+        add("Quit PeekShot", #selector(quit), symbol: "power")
     }
 
     @discardableResult
-    private func add(_ title: String, _ action: Selector, shortcut: KeyCombo? = nil) -> NSMenuItem {
+    private func add(_ title: String, _ action: Selector, symbol: String, shortcut: KeyCombo? = nil) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
         item.target = self
+        item.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
         if let shortcut, shortcut.key.count == 1 {
             item.keyEquivalent = shortcut.key.lowercased()
             item.keyEquivalentModifierMask = shortcut.cocoaModifiers
@@ -165,5 +207,6 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     }
 
     @objc private func openSettings() { SettingsWindowController.show() }
+    @objc private func openAbout() { SettingsWindowController.show(tab: .about) }
     @objc private func quit() { NSApp.terminate(nil) }
 }

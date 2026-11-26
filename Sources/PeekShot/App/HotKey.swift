@@ -2,7 +2,7 @@ import AppKit
 import Carbon.HIToolbox
 
 enum HotKeyAction: String, CaseIterable, Identifiable {
-    case captureArea, captureWindow, captureFullscreen, capturePreviousArea, captureTimer, openHistory
+    case captureArea, captureWindow, captureFullscreen, capturePreviousArea, captureTimer, captureText, openHistory
 
     var id: String { rawValue }
 
@@ -13,7 +13,21 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
         case .captureFullscreen: return "Capture Fullscreen"
         case .capturePreviousArea: return "Capture Previous Area"
         case .captureTimer: return "Self-Timer"
+        case .captureText: return "Capture Text (OCR)"
         case .openHistory: return "Capture History"
+        }
+    }
+
+    /// SF Symbol shown next to the action in menus.
+    var symbol: String {
+        switch self {
+        case .captureArea: return "rectangle.dashed"
+        case .captureWindow: return "macwindow"
+        case .captureFullscreen: return "display"
+        case .capturePreviousArea: return "arrow.counterclockwise"
+        case .captureTimer: return "timer"
+        case .captureText: return "text.viewfinder"
+        case .openHistory: return "clock.arrow.circlepath"
         }
     }
 
@@ -25,6 +39,7 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
         case .captureFullscreen: return KeyCombo(keyCode: UInt32(kVK_ANSI_F), modifiers: mods, key: "F")
         case .capturePreviousArea: return KeyCombo(keyCode: UInt32(kVK_ANSI_R), modifiers: mods, key: "R")
         case .captureTimer: return KeyCombo(keyCode: UInt32(kVK_ANSI_T), modifiers: mods, key: "T")
+        case .captureText: return KeyCombo(keyCode: UInt32(kVK_ANSI_O), modifiers: mods, key: "O")
         case .openHistory: return KeyCombo(keyCode: UInt32(kVK_ANSI_H), modifiers: mods, key: "H")
         }
     }
