@@ -1,0 +1,59 @@
+name: PeekShot
+options:
+  bundleIdPrefix: app.peekshot
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+targets:
+  PeekShot:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/PeekShot
+      - Resources
+    info:
+      path: Config/Info.plist
+      properties:
+        CFBundleDisplayName: PeekShot
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.utilities
+        NSHumanReadableCopyright: ""
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.peekshot.PeekShot
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_HARDENED_RUNTIME: NO
+        ENABLE_APP_SANDBOX: NO
+  PeekShotTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/PeekShotTests
+    dependencies:
+      - target: PeekShot
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: app.peekshot.PeekShotTests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/PeekShot.app/Contents/MacOS/PeekShot
+        BUNDLE_LOADER: $(TEST_HOST)
+schemes:
+  PeekShot:
+    build:
+      targets:
+        PeekShot: all
+        PeekShotTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - PeekShotTests
