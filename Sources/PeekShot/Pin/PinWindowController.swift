@@ -64,13 +64,13 @@ final class PinWindowController: NSObject {
     func makeMenu() -> NSMenu {
         let menu = NSMenu()
         let entries: [(String, Selector)] = [
-            ("复制", #selector(copyImage)), ("保存", #selector(saveImage)), ("标注", #selector(editImage)),
+            ("Copy", #selector(copyImage)), ("Save", #selector(saveImage)), ("Annotate", #selector(editImage)),
         ]
         for (title, action) in entries {
             menu.addItem(withTitle: title, action: action, keyEquivalent: "").target = self
         }
         menu.addItem(.separator())
-        let opacityItem = NSMenuItem(title: "不透明度", action: nil, keyEquivalent: "")
+        let opacityItem = NSMenuItem(title: "Opacity", action: nil, keyEquivalent: "")
         let opacityMenu = NSMenu()
         for percent in [100, 75, 50, 25] {
             let entry = NSMenuItem(title: "\(percent)%", action: #selector(pickOpacity(_:)), keyEquivalent: "")
@@ -81,11 +81,11 @@ final class PinWindowController: NSObject {
         }
         opacityItem.submenu = opacityMenu
         menu.addItem(opacityItem)
-        let reset = NSMenuItem(title: "恢复原始大小", action: #selector(resetSize), keyEquivalent: "")
+        let reset = NSMenuItem(title: "Actual Size", action: #selector(resetSize), keyEquivalent: "")
         reset.target = self
         menu.addItem(reset)
         menu.addItem(.separator())
-        let close = NSMenuItem(title: "关闭", action: #selector(closeFromMenu), keyEquivalent: "")
+        let close = NSMenuItem(title: "Close", action: #selector(closeFromMenu), keyEquivalent: "")
         close.target = self
         menu.addItem(close)
         return menu
@@ -115,7 +115,7 @@ private final class PinView: NSView {
     private let closeButton: NSButton
 
     init(item: CaptureItem, frame: CGRect) {
-        let image = NSImage(systemSymbolName: "xmark", accessibilityDescription: "关闭")?
+        let image = NSImage(systemSymbolName: "xmark", accessibilityDescription: "Close")?
             .withSymbolConfiguration(.init(pointSize: 10, weight: .bold)) ?? NSImage()
         closeButton = NSButton(image: image, target: nil, action: nil)
         super.init(frame: frame)

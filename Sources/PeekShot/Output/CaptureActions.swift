@@ -12,15 +12,15 @@ enum CaptureActions {
         if Prefs.showQuickAccess {
             QuickAccessController.shared.show(item, on: screen)
         } else if Prefs.copyAfterCapture {
-            Toast.show("已复制到剪贴板")
+            Toast.show("Copied to clipboard")
         } else if Prefs.saveAfterCapture {
-            Toast.show("已保存")
+            Toast.show("Saved")
         }
     }
 
     static func copy(_ item: CaptureItem) {
         ImageCodec.copyToPasteboard(item)
-        Toast.show("已复制到剪贴板")
+        Toast.show("Copied to clipboard")
     }
 
     /// Saves into the folder from settings.
@@ -31,10 +31,10 @@ enum CaptureActions {
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let url = ImageCodec.uniqueURL(in: directory, fileName: ImageCodec.fileName(for: Date(), format: format))
         guard ImageCodec.write(item.image, scale: item.scale, format: format, to: url) else {
-            Toast.show("保存失败：无法写入 \(directory.lastPathComponent)")
+            Toast.show("Save failed: cannot write to \(directory.lastPathComponent)")
             return nil
         }
-        if announce { Toast.show("已保存到 \(directory.lastPathComponent)") }
+        if announce { Toast.show("Saved to \(directory.lastPathComponent)") }
         return url
     }
 
@@ -47,7 +47,7 @@ enum CaptureActions {
         let write: (NSApplication.ModalResponse) -> Void = { response in
             guard response == .OK, let url = panel.url else { return }
             if !ImageCodec.write(item.image, scale: item.scale, format: format, to: url) {
-                Toast.show("保存失败")
+                Toast.show("Save failed")
             }
         }
         if let window {

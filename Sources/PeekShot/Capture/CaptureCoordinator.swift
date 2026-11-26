@@ -91,7 +91,7 @@ final class CaptureCoordinator {
     private func capturePreviousArea() {
         guard !busy, ensurePermission() else { return }
         guard let lastArea else {
-            Toast.show("还没有截取过区域")
+            Toast.show("No previous area yet")
             return
         }
         busy = true
@@ -134,28 +134,35 @@ final class CaptureCoordinator {
         if !ScreenCapturer.hasPermission {
             showPermissionAlert()
         } else {
-            Toast.show("截图失败：\(error.localizedDescription)")
+            Toast.show("Capture failed: \(error.localizedDescription)")
         }
     }
 
     private func ensurePermission() -> Bool {
+        // The system prompt itself is requested once at launch (see AppDelegate).
         if ScreenCapturer.hasPermission { return true }
-        // The first request makes macOS show its own prompt and list the app in System Settings.
-        CGRequestScreenCaptureAccess()
         showPermissionAlert()
         return false
     }
 
     private func showPermissionAlert() {
         let alert = NSAlert()
-        alert.messageText = "PeekShot 需要“屏幕录制”权限"
-        alert.informativeText = "请在 系统设置 → 隐私与安全性 → 录屏与系统录音 中打开 PeekShot，然后重新启动 PeekShot。"
-        alert.addButton(withTitle: "打开系统设置")
-        alert.addButton(withTitle: "稍后")
+        alert.messageText = "PeekShot needs Screen Recording permission"
+        alert.informativeText = "Turn on PeekShot in System Settings → Privacy & Security → Screen & System Audio Recording.\n"
+            + "macOS reads this permission only when the app starts: if the switch is already on, click Relaunch PeekShot."
+        alert.addButton(withTitle: "Relaunch PeekShot")
+        alert.addButton(withTitle: "Open System Settings")
+        alert.addButton(withTitle: "Later")
         NSApp.activate(ignoringOtherApps: true)
-        if alert.runModal() == .alertFirstButtonReturn,
-           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
-            NSWorkspace.shared.open(url)
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            AppDelegate.relaunch()
+        case .alertSecondButtonReturn:
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+                NSWorkspace.shared.open(url)
+            }
+        default:
+            break
         }
     }
 }

@@ -8,12 +8,12 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .captureArea: return "截取区域"
-        case .captureWindow: return "截取窗口"
-        case .captureFullscreen: return "截取全屏"
-        case .capturePreviousArea: return "截取上次区域"
-        case .captureTimer: return "延时截图"
-        case .openHistory: return "截图历史"
+        case .captureArea: return "Capture Area"
+        case .captureWindow: return "Capture Window"
+        case .captureFullscreen: return "Capture Fullscreen"
+        case .capturePreviousArea: return "Capture Previous Area"
+        case .captureTimer: return "Self-Timer"
+        case .openHistory: return "Capture History"
         }
     }
 

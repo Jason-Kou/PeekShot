@@ -3,8 +3,10 @@ import UniformTypeIdentifiers
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusMenu: StatusMenuController?
+    private var launchDate = Date()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        launchDate = Date()
         Prefs.registerDefaults()
         NSApp.mainMenu = Self.makeMainMenu()
         statusMenu = StatusMenuController()
@@ -19,30 +21,74 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         HotKeyCenter.shared.reload()
         HistoryStore.shared.prune(olderThanDays: Prefs.historyDays)
+
+        // Ask once at launch so PeekShot is listed under Screen Recording before the first capture.
+        // macOS shows its prompt only the first time; unit test runs must not trigger it.
+        let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        if !ScreenCapturer.hasPermission, !isRunningTests {
+            CGRequestScreenCaptureAccess()
+        }
+        NSLog("PeekShot: screen recording permission %@", ScreenCapturer.hasPermission ? "granted" : "missing")
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
+    /// Quits and starts the app again, e.g. to pick up a freshly granted screen recording permission.
+    static func relaunch() {
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+        task.arguments = ["-c", "sleep 0.5; /usr/bin/open \"$0\"", Bundle.main.bundlePath]
+        try? task.run()
+        NSApp.terminate(nil)
+    }
+
+    /// Opening the app again while it runs shows the settings window, so everything stays reachable
+    /// when the menu bar icon is hidden behind the notch or crowded out by other icons.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // The launch itself also arrives here; only a later, deliberate reopen should show the window.
+        if Date().timeIntervalSince(launchDate) > 2 {
+            SettingsWindowController.show()
+        }
+        return false
+    }
+
+    /// URL scheme for scripts and launchers: `open peekshot://capture-area`.
+    /// Hosts: capture-area, capture-window, capture-fullscreen, capture-previous-area, capture-timer, history, settings.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        let actions: [String: HotKeyAction] = [
+            "capture-area": .captureArea, "capture-window": .captureWindow,
+            "capture-fullscreen": .captureFullscreen, "capture-previous-area": .capturePreviousArea,
+            "capture-timer": .captureTimer, "history": .openHistory,
+        ]
+        for url in urls {
+            if url.host == "settings" {
+                SettingsWindowController.show()
+            } else if let host = url.host, let action = actions[host] {
+                CaptureCoordinator.shared.perform(action)
+            }
+        }
+    }
 
     /// A menu-bar app shows no main menu, but text fields still need it for ⌘C / ⌘V / ⌘Z.
     private static func makeMainMenu() -> NSMenu {
         let main = NSMenu()
         let editItem = NSMenuItem()
-        let edit = NSMenu(title: "编辑")
-        edit.addItem(withTitle: "撤销", action: Selector(("undo:")), keyEquivalent: "z")
-        let redo = edit.addItem(withTitle: "重做", action: Selector(("redo:")), keyEquivalent: "z")
+        let edit = NSMenu(title: "Edit")
+        edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
+        let redo = edit.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "z")
         redo.keyEquivalentModifierMask = [.command, .shift]
         edit.addItem(.separator())
-        edit.addItem(withTitle: "剪切", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
-        edit.addItem(withTitle: "拷贝", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
-        edit.addItem(withTitle: "粘贴", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
-        edit.addItem(withTitle: "全选", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         editItem.submenu = edit
         main.addItem(editItem)
 
         let windowItem = NSMenuItem()
-        let window = NSMenu(title: "窗口")
-        window.addItem(withTitle: "关闭", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
-        window.addItem(withTitle: "最小化", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        let window = NSMenu(title: "Window")
+        window.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        window.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
         windowItem.submenu = window
         main.addItem(windowItem)
         return main
@@ -66,19 +112,19 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         menu.removeAllItems()
         let captures: [HotKeyAction] = [.captureArea, .captureWindow, .captureFullscreen, .capturePreviousArea, .captureTimer]
         for action in captures {
-            let title = action == .captureTimer ? "延时截图（\(Prefs.timerSeconds) 秒）" : action.title
+            let title = action == .captureTimer ? "Self-Timer (\(Prefs.timerSeconds)s)" : action.title
             let item = add(title, #selector(runHotKeyAction(_:)), shortcut: Prefs.keyCombo(for: action))
             item.representedObject = action.rawValue
             if action == .capturePreviousArea { item.isEnabled = CaptureCoordinator.shared.hasPreviousArea }
         }
         menu.addItem(.separator())
-        add("贴图剪贴板中的图片", #selector(pinClipboard))
-        add("打开图片进行标注…", #selector(openImage))
-        add("截图历史", #selector(runHotKeyAction(_:)), shortcut: Prefs.keyCombo(for: .openHistory))
+        add("Pin Image from Clipboard", #selector(pinClipboard))
+        add("Open Image to Annotate…", #selector(openImage))
+        add("Capture History", #selector(runHotKeyAction(_:)), shortcut: Prefs.keyCombo(for: .openHistory))
             .representedObject = HotKeyAction.openHistory.rawValue
         menu.addItem(.separator())
-        add("设置…", #selector(openSettings))
-        add("退出 PeekShot", #selector(quit))
+        add("Settings…", #selector(openSettings))
+        add("Quit PeekShot", #selector(quit))
     }
 
     @discardableResult
@@ -103,7 +149,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
 
     @objc private func pinClipboard() {
         guard let image = ImageCodec.imageFromPasteboard() else {
-            Toast.show("剪贴板里没有图片")
+            Toast.show("No image on the clipboard")
             return
         }
         CaptureActions.pin(CaptureItem(image: image, scale: 1))

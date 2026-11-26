@@ -11,19 +11,19 @@ enum ToolKind: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .select: return "选择"
-        case .crop: return "裁剪"
-        case .arrow: return "箭头"
-        case .line: return "直线"
-        case .rectangle: return "矩形"
-        case .ellipse: return "椭圆"
-        case .pencil: return "画笔"
-        case .highlighter: return "高亮"
-        case .text: return "文字"
-        case .counter: return "序号"
-        case .pixelate: return "马赛克"
-        case .blur: return "模糊"
-        case .spotlight: return "聚焦"
+        case .select: return "Select"
+        case .crop: return "Crop"
+        case .arrow: return "Arrow"
+        case .line: return "Line"
+        case .rectangle: return "Rectangle"
+        case .ellipse: return "Ellipse"
+        case .pencil: return "Pencil"
+        case .highlighter: return "Highlighter"
+        case .text: return "Text"
+        case .counter: return "Counter"
+        case .pixelate: return "Pixelate"
+        case .blur: return "Blur"
+        case .spotlight: return "Spotlight"
         }
     }
 

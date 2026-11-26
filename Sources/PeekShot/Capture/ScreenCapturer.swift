@@ -58,8 +58,8 @@ enum CaptureError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .displayNotFound: return "找不到要截取的显示器。"
-        case .windowNotFound: return "找不到要截取的窗口。"
+        case .displayNotFound: return "The display to capture was not found."
+        case .windowNotFound: return "The window to capture was not found."
         }
     }
 }

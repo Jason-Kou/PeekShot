@@ -10,7 +10,7 @@ enum HistoryWindowController {
             let created = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 880, height: 580),
                                    styleMask: [.titled, .closable, .miniaturizable, .resizable],
                                    backing: .buffered, defer: false)
-            created.title = "截图历史"
+            created.title = "Capture History"
             created.isReleasedWhenClosed = false
             created.contentViewController = NSHostingController(rootView: HistoryView())
             created.setContentSize(CGSize(width: 880, height: 580))
@@ -37,9 +37,9 @@ struct HistoryView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("\(store.entries.count) 张截图").foregroundStyle(.secondary)
+                Text(store.entries.count == 1 ? "1 capture" : "\(store.entries.count) captures").foregroundStyle(.secondary)
                 Spacer()
-                Button("清空历史") { confirmingClear = true }
+                Button("Clear History") { confirmingClear = true }
                     .disabled(store.entries.isEmpty)
             }
             .padding(.horizontal, 16)
@@ -47,7 +47,7 @@ struct HistoryView: View {
             Divider()
             if store.entries.isEmpty {
                 Spacer()
-                Text("还没有截图").foregroundStyle(.secondary)
+                Text("No captures yet").foregroundStyle(.secondary)
                 Spacer()
             } else {
                 ScrollView {
@@ -61,11 +61,11 @@ struct HistoryView: View {
             }
         }
         .frame(minWidth: 520, minHeight: 360)
-        .confirmationDialog("清空全部截图历史？", isPresented: $confirmingClear) {
-            Button("清空", role: .destructive) { store.deleteAll() }
-            Button("取消", role: .cancel) {}
+        .confirmationDialog("Clear the entire capture history?", isPresented: $confirmingClear) {
+            Button("Clear", role: .destructive) { store.deleteAll() }
+            Button("Cancel", role: .cancel) {}
         } message: {
-            Text("只删除 PeekShot 历史里的副本，已另存到其他位置的文件不受影响。")
+            Text("Only the copies in PeekShot's history are deleted. Files you saved elsewhere are not affected.")
         }
     }
 }
@@ -96,15 +96,15 @@ private struct HistoryCell: View {
         .onTapGesture(count: 2) { withItem(CaptureActions.edit) }
         .onDrag { NSItemProvider(contentsOf: entry.url) ?? NSItemProvider() }
         .contextMenu {
-            Button("复制") { withItem(CaptureActions.copy) }
-            Button("保存") { withItem { CaptureActions.save($0) } }
-            Button("标注") { withItem(CaptureActions.edit) }
-            Button("贴图到屏幕") { withItem(CaptureActions.pin) }
-            Button("在访达中显示") { withItem(CaptureActions.revealInFinder) }
+            Button("Copy") { withItem(CaptureActions.copy) }
+            Button("Save") { withItem { CaptureActions.save($0) } }
+            Button("Annotate") { withItem(CaptureActions.edit) }
+            Button("Pin to Screen") { withItem(CaptureActions.pin) }
+            Button("Show in Finder") { withItem(CaptureActions.revealInFinder) }
             Divider()
-            Button("删除", role: .destructive) { HistoryStore.shared.delete(entry) }
+            Button("Delete", role: .destructive) { HistoryStore.shared.delete(entry) }
         }
-        .help("双击打开标注，拖拽可导出文件")
+        .help("Double-click to annotate, drag to export the file")
     }
 
     private func withItem(_ action: (CaptureItem) -> Void) {

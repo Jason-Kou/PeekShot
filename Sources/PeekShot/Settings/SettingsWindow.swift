@@ -8,9 +8,9 @@ enum SettingsWindowController {
 
     static func show() {
         if window == nil {
-            let created = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 520, height: 520),
+            let created = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 520, height: 566),
                                    styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            created.title = "PeekShot 设置"
+            created.title = "PeekShot Settings"
             created.isReleasedWhenClosed = false
             created.contentViewController = NSHostingController(rootView: SettingsView())
             created.center()
@@ -23,11 +23,22 @@ enum SettingsWindowController {
 
 struct SettingsView: View {
     var body: some View {
-        TabView {
-            GeneralSettings().tabItem { Label("通用", systemImage: "gearshape") }
-            ShortcutSettings().tabItem { Label("快捷键", systemImage: "keyboard") }
+        VStack(spacing: 0) {
+            TabView {
+                GeneralSettings().tabItem { Label("General", systemImage: "gearshape") }
+                ShortcutSettings().tabItem { Label("Shortcuts", systemImage: "keyboard") }
+            }
+            Divider()
+            // The same entries as the menu bar icon, for when that icon is not reachable.
+            HStack {
+                Button("Capture History") { HistoryWindowController.show() }
+                Spacer()
+                Button("Quit PeekShot") { NSApp.terminate(nil) }
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 46)
         }
-        .frame(width: 520, height: 520)
+        .frame(width: 520, height: 566)
     }
 }
 
@@ -48,50 +59,50 @@ private struct GeneralSettings: View {
 
     var body: some View {
         Form {
-            Section("截图后") {
-                Toggle("显示悬浮预览", isOn: $showQuickAccess)
-                Toggle("复制到剪贴板", isOn: $copyAfterCapture)
-                Toggle("保存到文件夹", isOn: $saveAfterCapture)
-                Toggle("播放快门声", isOn: $playSound)
+            Section("After Capture") {
+                Toggle("Show Quick Access overlay", isOn: $showQuickAccess)
+                Toggle("Copy to clipboard", isOn: $copyAfterCapture)
+                Toggle("Save to folder", isOn: $saveAfterCapture)
+                Toggle("Play shutter sound", isOn: $playSound)
             }
-            Section("保存") {
-                LabeledContent("保存位置") {
+            Section("Saving") {
+                LabeledContent("Save location") {
                     HStack {
                         Text((saveDirectory as NSString).abbreviatingWithTildeInPath)
                             .lineLimit(1)
                             .truncationMode(.middle)
                             .foregroundStyle(.secondary)
-                        Button("选择…", action: chooseDirectory)
+                        Button("Choose…", action: chooseDirectory)
                     }
                 }
-                Picker("图片格式", selection: $imageFormat) {
+                Picker("Image format", selection: $imageFormat) {
                     ForEach(ImageFormat.allCases) { Text($0.title).tag($0.rawValue) }
                 }
             }
-            Section("截图") {
-                Toggle("显示放大镜", isOn: $showMagnifier)
-                Toggle("窗口截图带阴影", isOn: $windowShadow)
-                Stepper("延时截图：\(timerSeconds) 秒", value: $timerSeconds, in: 1...30)
+            Section("Capture") {
+                Toggle("Show magnifier", isOn: $showMagnifier)
+                Toggle("Add shadow to window captures", isOn: $windowShadow)
+                Stepper("Self-timer: \(timerSeconds) s", value: $timerSeconds, in: 1...30)
             }
-            Section("悬浮预览与历史") {
-                Picker("预览位置", selection: $overlayPosition) {
+            Section("Quick Access & History") {
+                Picker("Overlay position", selection: $overlayPosition) {
                     ForEach(OverlayPosition.allCases) { Text($0.title).tag($0.rawValue) }
                 }
-                Picker("自动关闭预览", selection: $overlayAutoClose) {
-                    Text("不自动关闭").tag(0)
-                    Text("5 秒").tag(5)
-                    Text("10 秒").tag(10)
-                    Text("30 秒").tag(30)
+                Picker("Auto-close overlay", selection: $overlayAutoClose) {
+                    Text("Never").tag(0)
+                    Text("After 5 seconds").tag(5)
+                    Text("After 10 seconds").tag(10)
+                    Text("After 30 seconds").tag(30)
                 }
-                Picker("历史保留", selection: $historyDays) {
-                    Text("7 天").tag(7)
-                    Text("30 天").tag(30)
-                    Text("90 天").tag(90)
-                    Text("永久").tag(0)
+                Picker("Keep history for", selection: $historyDays) {
+                    Text("7 days").tag(7)
+                    Text("30 days").tag(30)
+                    Text("90 days").tag(90)
+                    Text("Forever").tag(0)
                 }
             }
             Section {
-                Toggle("登录时启动", isOn: $launchAtLogin)
+                Toggle("Launch at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in
                         do {
                             if enabled {
@@ -130,15 +141,15 @@ private struct ShortcutSettings: View {
                     }
                 }
             } footer: {
-                Text("点击后按下新的组合键（需包含 ⌘、⌃ 或 ⌥）。按 Delete 清除，按 Esc 取消。")
+                Text("Click a shortcut, then press the new combination (it must include ⌘, ⌃ or ⌥). Press Delete to clear it, Esc to cancel.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Section("选区内") {
-                LabeledContent("切换区域 / 窗口模式", value: "空格")
-                LabeledContent("拖动时移动选区", value: "按住空格")
-                LabeledContent("正方形 / 从中心拉伸", value: "⇧ / ⌥")
-                LabeledContent("取消", value: "Esc 或右键")
+            Section("While Selecting") {
+                LabeledContent("Switch between area and window", value: "Space")
+                LabeledContent("Move the selection while dragging", value: "Hold Space")
+                LabeledContent("Square / resize from center", value: "⇧ / ⌥")
+                LabeledContent("Cancel", value: "Esc or right-click")
             }
         }
         .formStyle(.grouped)
@@ -168,7 +179,7 @@ final class ShortcutRecorderButton: NSButton {
     required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
 
     private func refreshTitle() {
-        title = Prefs.keyCombo(for: hotKeyAction)?.displayString ?? "未设置"
+        title = Prefs.keyCombo(for: hotKeyAction)?.displayString ?? "Not Set"
     }
 
     @objc private func toggleRecording() {
@@ -176,7 +187,7 @@ final class ShortcutRecorderButton: NSButton {
     }
 
     private func startRecording() {
-        title = "按下快捷键…"
+        title = "Press shortcut…"
         // Global shortcuts would swallow the keys being recorded.
         HotKeyCenter.shared.suspend()
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in

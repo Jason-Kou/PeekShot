@@ -295,7 +295,7 @@ final class InteractionTests: XCTestCase {
         // 1600 x 1000 pt: larger than the editor can show at 100 % on a laptop display.
         let item = CaptureItem(image: testPattern(width: 3200, height: 2000), scale: 2)
         EditorWindowController.open(item)
-        let window = try XCTUnwrap(NSApp.windows.first { $0.title == "PeekShot 标注" && $0.isVisible })
+        let window = try XCTUnwrap(NSApp.windows.first { $0.title == "PeekShot Editor" && $0.isVisible })
         let scrollView = try XCTUnwrap(firstSubview(of: NSScrollView.self, in: window.contentView))
         let canvas = try XCTUnwrap(scrollView.documentView as? CanvasView)
 
@@ -306,18 +306,18 @@ final class InteractionTests: XCTestCase {
         save(viewSnapshot(of: try XCTUnwrap(window.contentView)), "editor-window")
 
         window.close()
-        XCTAssertFalse(NSApp.windows.contains { $0.title == "PeekShot 标注" && $0.isVisible })
+        XCTAssertFalse(NSApp.windows.contains { $0.title == "PeekShot Editor" && $0.isVisible })
     }
 
     func testSettingsAndHistoryWindowsOpen() throws {
         SettingsWindowController.show()
-        let settings = try XCTUnwrap(NSApp.windows.first { $0.title == "PeekShot 设置" && $0.isVisible })
+        let settings = try XCTUnwrap(NSApp.windows.first { $0.title == "PeekShot Settings" && $0.isVisible })
         RunLoop.main.run(until: Date().addingTimeInterval(0.3))
         save(viewSnapshot(of: try XCTUnwrap(settings.contentView)), "settings-window")
         settings.close()
 
         HistoryWindowController.show()
-        let history = try XCTUnwrap(NSApp.windows.first { $0.title == "截图历史" && $0.isVisible })
+        let history = try XCTUnwrap(NSApp.windows.first { $0.title == "Capture History" && $0.isVisible })
         RunLoop.main.run(until: Date().addingTimeInterval(0.3))
         save(viewSnapshot(of: try XCTUnwrap(history.contentView)), "history-window")
         history.close()

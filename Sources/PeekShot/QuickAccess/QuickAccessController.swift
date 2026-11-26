@@ -135,20 +135,20 @@ final class QuickAccessCardView: NSView, NSDraggingSource {
         controls.isHidden = true
         addSubview(controls)
 
-        let copy = pillButton("复制", action: #selector(copyImage))
-        let save = pillButton("保存", action: #selector(saveImage))
+        let copy = pillButton("Copy", action: #selector(copyImage))
+        let save = pillButton("Save", action: #selector(saveImage))
         let pillWidth: CGFloat = 84
         copy.frame = CGRect(x: (bounds.width - pillWidth) / 2, y: bounds.midY + 3, width: pillWidth, height: 26)
         save.frame = CGRect(x: (bounds.width - pillWidth) / 2, y: bounds.midY - 29, width: pillWidth, height: 26)
 
         let inset: CGFloat = 8, side: CGFloat = 24
-        let close = iconButton("xmark", tip: "关闭", action: #selector(closeCard))
+        let close = iconButton("xmark", tip: "Close", action: #selector(closeCard))
         close.frame = CGRect(x: inset, y: bounds.height - inset - side, width: side, height: side)
-        let pin = iconButton("pin.fill", tip: "贴图到屏幕", action: #selector(pinImage))
+        let pin = iconButton("pin.fill", tip: "Pin to screen", action: #selector(pinImage))
         pin.frame = CGRect(x: bounds.width - inset - side, y: bounds.height - inset - side, width: side, height: side)
-        let edit = iconButton("pencil", tip: "标注", action: #selector(editImage))
+        let edit = iconButton("pencil", tip: "Annotate", action: #selector(editImage))
         edit.frame = CGRect(x: inset, y: inset, width: side, height: side)
-        let more = iconButton("ellipsis", tip: "更多", action: #selector(showMenu(_:)))
+        let more = iconButton("ellipsis", tip: "More", action: #selector(showMenu(_:)))
         more.frame = CGRect(x: bounds.width - inset - side, y: inset, width: side, height: side)
 
         [copy, save, close, pin, edit, more].forEach(controls.addSubview)
@@ -243,9 +243,9 @@ final class QuickAccessCardView: NSView, NSDraggingSource {
     private func makeMenu() -> NSMenu {
         let menu = NSMenu()
         let entries: [(String, Selector)] = [
-            ("复制", #selector(copyImage)), ("保存", #selector(saveImage)), ("另存为…", #selector(saveImageAs)),
-            ("标注", #selector(editImage)), ("贴图到屏幕", #selector(pinImage)),
-            ("在访达中显示", #selector(revealImage)), ("关闭", #selector(closeCard)),
+            ("Copy", #selector(copyImage)), ("Save", #selector(saveImage)), ("Save As…", #selector(saveImageAs)),
+            ("Annotate", #selector(editImage)), ("Pin to Screen", #selector(pinImage)),
+            ("Show in Finder", #selector(revealImage)), ("Close", #selector(closeCard)),
         ]
         for (title, action) in entries {
             menu.addItem(withTitle: title, action: action, keyEquivalent: "").target = self

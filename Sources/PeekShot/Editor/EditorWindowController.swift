@@ -62,7 +62,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
         let window = EditorWindow(contentRect: CGRect(x: 0, y: 0, width: width, height: height),
                                   styleMask: [.titled, .closable, .miniaturizable, .resizable],
                                   backing: .buffered, defer: false)
-        window.title = "PeekShot 标注"
+        window.title = "PeekShot Editor"
         window.minSize = CGSize(width: 920, height: 420)
         window.isReleasedWhenClosed = false
         window.setFrameOrigin(CGPoint(x: visible.midX - width / 2, y: visible.midY - height / 2))
@@ -209,7 +209,7 @@ struct EditorToolbar: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .help("\(tool.title)（\(String(tool.shortcut).uppercased())）")
+                    .help("\(tool.title) (\(String(tool.shortcut).uppercased()))")
                 }
             }
             Divider().frame(height: 22)
@@ -228,18 +228,18 @@ struct EditorToolbar: View {
                     get: { Color(nsColor: state.color) },
                     set: { state.color = NSColor($0).usingColorSpace(.sRGB) ?? NSColor($0) }))
                     .labelsHidden()
-                    .help("自定义颜色")
+                    .help("Custom color")
             }
             Divider().frame(height: 22)
             Image(systemName: "lineweight").foregroundStyle(.secondary)
             Slider(value: $state.size, in: 1...12)
                 .frame(width: 90)
-                .help("粗细 / 大小")
+                .help("Stroke width / size")
             Toggle(isOn: $state.filled) {
                 Image(systemName: "square.fill")
             }
             .toggleStyle(.button)
-            .help("填充矩形和椭圆")
+            .help("Fill rectangles and ellipses")
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 12)
@@ -261,17 +261,17 @@ struct EditorFooter: View {
         HStack(spacing: 8) {
             Button(action: onUndo) { Image(systemName: "arrow.uturn.backward") }
                 .disabled(!state.canUndo)
-                .help("撤销（⌘Z）")
+                .help("Undo (⌘Z)")
             Button(action: onRedo) { Image(systemName: "arrow.uturn.forward") }
                 .disabled(!state.canRedo)
-                .help("重做（⇧⌘Z）")
+                .help("Redo (⇧⌘Z)")
             Spacer()
-            Button("贴图", action: onPin)
-            Button("另存为…", action: onSaveAs).help("⇧⌘S")
-            Button("保存", action: onSave).help("保存到默认文件夹（⌘S）")
-            Button("复制", action: onCopy)
+            Button("Pin", action: onPin)
+            Button("Save As…", action: onSaveAs).help("⇧⌘S")
+            Button("Save", action: onSave).help("Save to the default folder (⌘S)")
+            Button("Copy", action: onCopy)
                 .buttonStyle(.borderedProminent)
-                .help("复制并关闭（⌘C）")
+                .help("Copy and close (⌘C)")
         }
         .padding(.horizontal, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

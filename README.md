@@ -12,9 +12,21 @@ scripts/build.sh          # 生成 dist/PeekShot.app
 open dist/PeekShot.app
 ```
 
+PeekShot 只在菜单栏显示图标。图标被刘海或其他图标挡住时，再执行一次 `open dist/PeekShot.app`（或再次双击应用）会弹出设置窗口，里面可以打开历史和退出。
+
 首次截图时 macOS 会要求“录屏与系统录音”权限：在 系统设置 → 隐私与安全性 里打开 PeekShot，然后重启 PeekShot。
 
-应用目前是 ad-hoc 签名，每次重新构建后签名都会变，macOS 会要求重新授权。
+也可以用 URL 触发，适合脚本和启动器：`open peekshot://capture-area`。
+可用的动作：`capture-area`、`capture-window`、`capture-fullscreen`、`capture-previous-area`、`capture-timer`、`history`、`settings`。
+
+## 签名
+
+`scripts/build.sh` 用本机自签名证书 “PeekShot Local Signing” 签名，这样重新构建后录屏授权仍然有效。
+每台机器先运行一次 `scripts/setup-signing.sh` 创建证书；之后第一次构建会弹出钥匙串授权框，输入登录密码并选“始终允许”。
+没有这张证书时脚本会退回 ad-hoc 签名，此时每次重新构建后 macOS 都会要求重新授权。
+
+磁盘上只保留 `dist/` 里这一份正式版，Debug 构建（同时是测试宿主）使用单独的应用标识 `app.peekshot.PeekShot.debug`。
+否则 macOS 在“退出并重新打开”时可能按应用标识启动另一份没有授权的副本，表现为授权后仍然提示没有权限。
 
 ## 测试
 

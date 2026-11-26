@@ -11,7 +11,7 @@ enum ImageFormat: String, CaseIterable, Identifiable {
 enum OverlayPosition: String, CaseIterable, Identifiable {
     case left, right
     var id: String { rawValue }
-    var title: String { self == .left ? "左下角" : "右下角" }
+    var title: String { self == .left ? "Bottom Left" : "Bottom Right" }
 }
 
 /// UserDefaults keys. SwiftUI settings bind to the same keys through @AppStorage.

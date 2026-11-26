@@ -24,14 +24,24 @@ targets:
       properties:
         CFBundleDisplayName: PeekShot
         LSUIElement: true
+        CFBundleURLTypes:
+          - CFBundleURLName: app.peekshot.PeekShot
+            CFBundleURLSchemes: [$(PEEKSHOT_URL_SCHEME)]
         LSApplicationCategoryType: public.app-category.utilities
         NSHumanReadableCopyright: ""
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.peekshot.PeekShot
+        PEEKSHOT_URL_SCHEME: peekshot
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: NO
         ENABLE_APP_SANDBOX: NO
+      configs:
+        # The Debug build doubles as the unit test host. A separate identity keeps macOS from ever
+        # launching it in place of the installed app (same bundle id, but no screen recording grant).
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER: app.peekshot.PeekShot.debug
+          PEEKSHOT_URL_SCHEME: peekshot-debug
   PeekShotTests:
     type: bundle.unit-test
     platform: macOS
