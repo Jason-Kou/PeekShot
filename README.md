@@ -23,7 +23,25 @@ Native Swift + AppKit + ScreenCaptureKit. No account, no telemetry, no network a
 - **History** — browse, re-edit, re-copy or drag out recent captures.
 - **Yours to configure** — global shortcuts, save location and format, a `peekshot://` URL scheme for scripts and launchers.
 
-Not included: screen recording, scrolling capture and cloud upload.
+## PeekShot vs CleanShot X
+
+PeekShot covers the everyday screenshot workflow of CleanShot X, for free and with the source in the open. It does not try to replace everything.
+
+| | PeekShot | CleanShot X |
+| --- | --- | --- |
+| Price | Free | Paid |
+| Source code | Open source (MIT) | Closed source |
+| Area, window and full-screen capture | Yes | Yes |
+| Quick Access overlay | Yes | Yes |
+| Annotation editor | Yes | Yes |
+| Text recognition (OCR) | Yes | Yes |
+| Pin to screen | Yes | Yes |
+| Scrolling capture | No | Yes |
+| Screen recording and GIFs | No | Yes |
+| Background tool | No | Yes |
+| Cloud upload | No | Yes |
+
+If you only need to grab part of the screen, mark it up and paste it somewhere, PeekShot is a free CleanShot alternative that does exactly that.
 
 ## Install
 
