@@ -54,12 +54,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// URL scheme for scripts and launchers: `open peekshot://capture-area`.
     /// Hosts: capture-area, capture-window, capture-fullscreen, capture-previous-area, capture-timer,
-    /// capture-text, history, settings, about.
+    /// capture-scrolling, capture-text, history, settings, about.
     func application(_ application: NSApplication, open urls: [URL]) {
         let actions: [String: HotKeyAction] = [
             "capture-area": .captureArea, "capture-window": .captureWindow,
             "capture-fullscreen": .captureFullscreen, "capture-previous-area": .capturePreviousArea,
-            "capture-timer": .captureTimer, "capture-text": .captureText, "history": .openHistory,
+            "capture-timer": .captureTimer, "capture-scrolling": .captureScrolling, "capture-text": .captureText,
+            "history": .openHistory,
         ]
         for url in urls {
             if url.host == "settings" {
@@ -145,7 +146,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         menu.autoenablesItems = false
         let groups: [[HotKeyAction]] = [
             [.captureArea, .captureWindow, .captureFullscreen, .capturePreviousArea],
-            [.captureTimer, .captureText],
+            [.captureTimer, .captureScrolling, .captureText],
         ]
         for group in groups {
             for action in group {

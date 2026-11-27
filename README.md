@@ -16,6 +16,7 @@ Native Swift + AppKit + ScreenCaptureKit. No account, no telemetry, no network a
 ## Features
 
 - **Capture** — area, window, full screen, previous area and self-timer. The screen freezes while you select, with a crosshair, a pixel loupe and a live size readout.
+- **Scrolling Capture** — select a region, scroll through it (or let Auto-Scroll do it) and get one tall image of the whole page. Sticky headers and footers appear only once, and a live preview shows the result as it grows.
 - **Capture Text (OCR)** — select a region and the recognized text lands on your clipboard. Works offline, English and Chinese.
 - **Quick Access overlay** — every capture shows up as a card in the corner: copy, save, annotate, pin, or drag it straight into another app.
 - **Annotation editor** — arrow, line, rectangle, ellipse, pencil, highlighter, text, counter, pixelate, blur, spotlight and crop, with undo/redo and move/resize.
@@ -36,7 +37,7 @@ PeekShot covers the everyday screenshot workflow of CleanShot X, for free and wi
 | Annotation editor | Yes | Yes |
 | Text recognition (OCR) | Yes | Yes |
 | Pin to screen | Yes | Yes |
-| Scrolling capture | No | Yes |
+| Scrolling capture | Yes | Yes |
 | Screen recording and GIFs | No | Yes |
 | Background tool | No | Yes |
 | Cloud upload | No | Yes |
@@ -86,10 +87,13 @@ All of these can be changed in **Settings → Shortcuts**.
 | Capture Fullscreen | ⌃⌥F |
 | Capture Previous Area | ⌃⌥R |
 | Self-Timer | ⌃⌥T |
+| Scrolling Capture | ⌃⌥S |
 | Capture Text (OCR) | ⌃⌥O |
 | Capture History | ⌃⌥H |
 
 **While selecting:** Space switches between area and window mode, hold Space while dragging to move the selection, ⇧ for a square, ⌥ to resize from the center, Esc or right-click to cancel.
+
+**During a scrolling capture:** scroll down slowly inside the frame, or click Auto-Scroll. Return or Done finishes, Esc or Cancel stops without saving. Auto-Scroll needs PeekShot to be allowed under **System Settings → Privacy & Security → Accessibility**; manual scrolling does not.
 
 **In the editor:** V select, C crop, A arrow, L line, R rectangle, O ellipse, P pencil, H highlighter, T text, N counter, X pixelate, B blur, S spotlight. ⌘Z / ⇧⌘Z undo and redo, ⌘C copy and close, ⌘S save, ⇧⌘S save as, ⌘0 zoom to fit.
 
@@ -103,7 +107,7 @@ On a MacBook with a notch, a crowded menu bar can hide the icon. Open PeekShot a
 open peekshot://capture-area
 ```
 
-Available actions: `capture-area`, `capture-window`, `capture-fullscreen`, `capture-previous-area`, `capture-timer`, `capture-text`, `history`, `settings`, `about`.
+Available actions: `capture-area`, `capture-window`, `capture-fullscreen`, `capture-previous-area`, `capture-timer`, `capture-scrolling`, `capture-text`, `history`, `settings`, `about`.
 
 ## Development
 

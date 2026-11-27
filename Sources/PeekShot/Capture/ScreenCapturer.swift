@@ -111,6 +111,30 @@ enum ScreenCapturer {
         return try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
     }
 
+    /// A filter for repeated captures of one display that leaves out the given windows of our own.
+    static func displayFilter(displayID: CGDirectDisplayID, excluding windowNumbers: Set<Int>) async throws
+        -> SCContentFilter {
+        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        guard let display = content.displays.first(where: { $0.displayID == displayID }) else {
+            throw CaptureError.displayNotFound
+        }
+        let excludedIDs = windowNumbers.union(excludedWindowNumbers())
+        let excluded = content.windows.filter { excludedIDs.contains(Int($0.windowID)) }
+        return SCContentFilter(display: display, excludingWindows: excluded)
+    }
+
+    /// Captures `rect` (display points, top-left origin) through a filter from `displayFilter`.
+    static func capture(_ rect: CGRect, with filter: SCContentFilter) async throws -> CGImage {
+        let config = SCStreamConfiguration()
+        let scale = CGFloat(filter.pointPixelScale)
+        config.sourceRect = rect
+        config.width = Int((rect.width * scale).rounded())
+        config.height = Int((rect.height * scale).rounded())
+        config.showsCursor = false
+        config.captureResolution = .best
+        return try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
+    }
+
     private static func configuration(for filter: SCContentFilter) -> SCStreamConfiguration {
         let config = SCStreamConfiguration()
         let scale = CGFloat(filter.pointPixelScale)

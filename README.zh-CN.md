@@ -16,6 +16,7 @@
 ## 功能
 
 - **截图**：区域、窗口、全屏、上次区域、延时截图。选区时屏幕定格，带十字线、像素放大镜和实时尺寸。
+- **滚动长截图**：框选一块区域，在里面往下滚动（或者点自动滚动），得到整页的一张长图。吸顶的标题栏和底栏只保留一份，旁边实时预览拼接结果。
 - **识别文字（OCR）**：框选一块区域，识别出的文字直接进剪贴板。离线可用，支持中英文。
 - **悬浮预览**：每次截图后在屏幕角落出现一张卡片，可复制、保存、标注、贴图，或直接拖进其他应用。
 - **标注编辑器**：箭头、直线、矩形、椭圆、画笔、高亮、文字、序号、马赛克、模糊、聚焦、裁剪，支持撤销重做和移动缩放。
@@ -36,7 +37,7 @@ PeekShot 覆盖了 CleanShot X 日常截图的那部分流程，免费，并且�
 | 标注编辑器 | 有 | 有 |
 | 文字识别（OCR） | 有 | 有 |
 | 贴图到屏幕 | 有 | 有 |
-| 滚动长截图 | 无 | 有 |
+| 滚动长截图 | 有 | 有 |
 | 录屏和 GIF | 无 | 有 |
 | 背景工具 | 无 | 有 |
 | 云上传 | 无 | 有 |
@@ -86,10 +87,13 @@ open dist/PeekShot.app
 | 截取全屏 | ⌃⌥F |
 | 截取上次区域 | ⌃⌥R |
 | 延时截图 | ⌃⌥T |
+| 滚动长截图 | ⌃⌥S |
 | 识别文字（OCR） | ⌃⌥O |
 | 截图历史 | ⌃⌥H |
 
 **选区中：** 空格切换区域 / 窗口模式，拖动时按住空格移动选区，⇧ 正方形，⌥ 从中心拉伸，Esc 或右键取消。
+
+**滚动长截图中：** 在框内慢慢往下滚动，或者点 Auto-Scroll 自动滚动。回车或 Done 完成，Esc 或 Cancel 放弃。自动滚动需要在 **系统设置 → 隐私与安全性 → 辅助功能** 里允许 PeekShot，手动滚动不需要。
 
 **编辑器中：** V 选择、C 裁剪、A 箭头、L 直线、R 矩形、O 椭圆、P 画笔、H 高亮、T 文字、N 序号、X 马赛克、B 模糊、S 聚焦。⌘Z / ⇧⌘Z 撤销重做，⌘C 复制并关闭，⌘S 保存，⇧⌘S 另存为，⌘0 适应窗口。
 
@@ -103,7 +107,7 @@ open dist/PeekShot.app
 open peekshot://capture-area
 ```
 
-可用的动作：`capture-area`、`capture-window`、`capture-fullscreen`、`capture-previous-area`、`capture-timer`、`capture-text`、`history`、`settings`、`about`。
+可用的动作：`capture-area`、`capture-window`、`capture-fullscreen`、`capture-previous-area`、`capture-timer`、`capture-scrolling`、`capture-text`、`history`、`settings`、`about`。
 
 ## 开发
 
