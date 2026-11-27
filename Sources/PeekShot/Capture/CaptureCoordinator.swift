@@ -1,6 +1,6 @@
 import AppKit
 
-/// Runs the capture flows: area, window, full screen, previous area, self-timer and text recognition.
+/// Runs the capture flows: area, window, full screen, previous area, self-timer, scrolling and text recognition.
 @MainActor
 final class CaptureCoordinator {
     static let shared = CaptureCoordinator()
@@ -14,6 +14,7 @@ final class CaptureCoordinator {
     private enum Purpose {
         case image
         case timer(seconds: Int)
+        case scrolling
         case text
     }
 
@@ -24,6 +25,7 @@ final class CaptureCoordinator {
         case .captureFullscreen: captureFullscreen()
         case .capturePreviousArea: capturePreviousArea()
         case .captureTimer: startSelection(mode: .area, purpose: .timer(seconds: Prefs.timerSeconds))
+        case .captureScrolling: startSelection(mode: .area, purpose: .scrolling)
         case .captureText: startSelection(mode: .area, purpose: .text)
         case .openHistory: HistoryWindowController.show()
         }
@@ -68,6 +70,12 @@ final class CaptureCoordinator {
             CountdownHUD.run(seconds: seconds, around: screenRect) { [weak self] in
                 self?.captureLive(displayID: snapshot.displayID, rect: rect)
             }
+        case let (.area(snapshot, rect), .scrolling):
+            captureScrolling(on: snapshot, rect: rect)
+        case let (.window(snapshot, window), .scrolling):
+            let viewRect = Geometry.viewRect(forGlobalRect: window.frame, displayBounds: snapshot.displayBounds)
+            captureScrolling(on: snapshot, rect: viewRect.intersection(CGRect(origin: .zero,
+                                                                              size: snapshot.screen.frame.size)))
         case let (.area(snapshot, rect), .image):
             lastArea = (snapshot.displayID, rect)
             deliver(crop(snapshot, viewRect: rect), from: snapshot)
@@ -99,6 +107,14 @@ final class CaptureCoordinator {
                 NSPasteboard.general.setString(text, forType: .string)
                 Toast.show("Text copied to clipboard")
             }
+        }
+    }
+
+    /// Records `rect` (view coordinates) live while the user scrolls, then delivers the stitched image.
+    private func captureScrolling(on snapshot: DisplaySnapshot, rect: CGRect) {
+        ScrollingCaptureSession.start(screen: snapshot.screen, displayID: snapshot.displayID, viewRect: rect.integral,
+                                      scale: snapshot.scale) { [weak self] image in
+            self?.deliver(image, from: snapshot)
         }
     }
 

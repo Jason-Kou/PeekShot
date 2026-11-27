@@ -2,7 +2,8 @@ import AppKit
 import Carbon.HIToolbox
 
 enum HotKeyAction: String, CaseIterable, Identifiable {
-    case captureArea, captureWindow, captureFullscreen, capturePreviousArea, captureTimer, captureText, openHistory
+    case captureArea, captureWindow, captureFullscreen, capturePreviousArea, captureTimer, captureScrolling, captureText
+    case openHistory
 
     var id: String { rawValue }
 
@@ -13,6 +14,7 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
         case .captureFullscreen: return "Capture Fullscreen"
         case .capturePreviousArea: return "Capture Previous Area"
         case .captureTimer: return "Self-Timer"
+        case .captureScrolling: return "Scrolling Capture"
         case .captureText: return "Capture Text (OCR)"
         case .openHistory: return "Capture History"
         }
@@ -26,6 +28,7 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
         case .captureFullscreen: return "display"
         case .capturePreviousArea: return "arrow.counterclockwise"
         case .captureTimer: return "timer"
+        case .captureScrolling: return "scroll"
         case .captureText: return "text.viewfinder"
         case .openHistory: return "clock.arrow.circlepath"
         }
@@ -39,6 +42,7 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
         case .captureFullscreen: return KeyCombo(keyCode: UInt32(kVK_ANSI_F), modifiers: mods, key: "F")
         case .capturePreviousArea: return KeyCombo(keyCode: UInt32(kVK_ANSI_R), modifiers: mods, key: "R")
         case .captureTimer: return KeyCombo(keyCode: UInt32(kVK_ANSI_T), modifiers: mods, key: "T")
+        case .captureScrolling: return KeyCombo(keyCode: UInt32(kVK_ANSI_S), modifiers: mods, key: "S")
         case .captureText: return KeyCombo(keyCode: UInt32(kVK_ANSI_O), modifiers: mods, key: "O")
         case .openHistory: return KeyCombo(keyCode: UInt32(kVK_ANSI_H), modifiers: mods, key: "H")
         }
@@ -106,6 +110,8 @@ final class HotKeyCenter {
     private var refs: [EventHotKeyRef] = []
     private var actionsByID: [UInt32: HotKeyAction] = [:]
     private var handlerInstalled = false
+    private var transientRefs: [EventHotKeyRef] = []
+    private var transientHandlers: [UInt32: () -> Void] = [:]
 
     private init() {}
 
@@ -134,6 +140,26 @@ final class HotKeyCenter {
         actionsByID.removeAll()
     }
 
+    /// Registers a key that works while another app is active, until `removeTransientKeys()`.
+    /// Used for Esc and Return while a scrolling capture runs on top of the app being captured.
+    func addTransientKey(keyCode: Int, modifiers: UInt32 = 0, handler: @escaping () -> Void) {
+        installHandlerIfNeeded()
+        let id = UInt32(1000 + transientHandlers.count)
+        var ref: EventHotKeyRef?
+        let hotKeyID = EventHotKeyID(signature: OSType(0x504B_5348), id: id)
+        if RegisterEventHotKey(UInt32(keyCode), modifiers, hotKeyID, GetApplicationEventTarget(), 0, &ref) == noErr,
+           let ref {
+            transientRefs.append(ref)
+            transientHandlers[id] = handler
+        }
+    }
+
+    func removeTransientKeys() {
+        transientRefs.forEach { UnregisterEventHotKey($0) }
+        transientRefs.removeAll()
+        transientHandlers.removeAll()
+    }
+
     private func installHandlerIfNeeded() {
         guard !handlerInstalled else { return }
         handlerInstalled = true
@@ -146,6 +172,8 @@ final class HotKeyCenter {
             let center = Unmanaged<HotKeyCenter>.fromOpaque(userData).takeUnretainedValue()
             if let action = center.actionsByID[hotKeyID.id] {
                 center.onAction?(action)
+            } else if let handler = center.transientHandlers[hotKeyID.id] {
+                handler()
             }
             return noErr
         }, 1, &spec, Unmanaged.passUnretained(self).toOpaque(), nil)
