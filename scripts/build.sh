@@ -8,8 +8,8 @@ cd "$(dirname "$0")/.."
 IDENTITY="PeekShot Local Signing"
 
 xcodegen generate
-xcodebuild -project PeekShot.xcodeproj -scheme PeekShot -configuration Release \
-  -derivedDataPath build build | grep -E "error|warning: unre|BUILD" || true
+xcodebuild -quiet -project PeekShot.xcodeproj -scheme PeekShot -configuration Release \
+  -derivedDataPath build build
 
 # Keep exactly one Release copy on disk: a second, unsigned copy with the same bundle id can get
 # launched by macOS ("Quit & Reopen") instead of the signed one and would lack the permission grant.

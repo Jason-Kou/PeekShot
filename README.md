@@ -52,12 +52,6 @@ If you only need to grab part of the screen, mark it up and paste it somewhere, 
 2. Open it and drag **PeekShot** into **Applications**.
 3. Launch PeekShot. It lives in the menu bar and has no Dock icon.
 
-**First launch.** PeekShot is not notarized by Apple yet, so macOS blocks it the first time. Open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**. Or remove the quarantine flag yourself:
-
-```bash
-xattr -dr com.apple.quarantine /Applications/PeekShot.app
-```
-
 **Screen recording permission.** macOS asks for it on first launch. Turn on PeekShot under **System Settings → Privacy & Security → Screen & System Audio Recording**, then relaunch the app.
 
 **Requirements:** macOS 14.0 or later, Apple Silicon or Intel.
@@ -132,7 +126,7 @@ Keep a single Release copy on disk (`dist/`). The Debug build, which doubles as 
 scripts/make-dmg.sh        # builds dist/PeekShot-v<version>-mac-universal.dmg and dist/SHA256SUMS
 ```
 
-The script signs with a "Developer ID Application" certificate and notarizes when both that certificate and a `notarytool` keychain profile named `peekshot` exist. Otherwise it ships the locally signed build and says so.
+Release packaging requires a Developer ID Application signing identity and a `notarytool` keychain profile named `peekshot`. Set `NOTARY_PROFILE` to use an existing profile with a different name. The script signs and notarizes both the app and the DMG, then verifies their stapled tickets before placing the release files in `dist/`.
 
 ### Layout
 
