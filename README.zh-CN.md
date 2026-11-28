@@ -52,12 +52,6 @@ PeekShot 覆盖了 CleanShot X 日常截图的那部分流程，免费，并且�
 2. 打开后把 **PeekShot** 拖进 **Applications**。
 3. 启动 PeekShot。它只在菜单栏显示图标，没有 Dock 图标。
 
-**首次启动。** PeekShot 目前还没有经过 Apple 公证，第一次打开会被 macOS 拦住。到 **系统设置 → 隐私与安全性**，往下滚动，点 **仍要打开**。也可以自己去掉隔离标记：
-
-```bash
-xattr -dr com.apple.quarantine /Applications/PeekShot.app
-```
-
 **录屏权限。** 首次启动时 macOS 会请求。在 **系统设置 → 隐私与安全性 → 录屏与系统录音** 里打开 PeekShot，然后重新启动应用。
 
 **系统要求：** macOS 14.0 及以上，Apple 芯片或 Intel 均可。
@@ -132,7 +126,7 @@ macOS 把录屏授权绑定在应用的代码签名上。`scripts/build.sh` 用�
 scripts/make-dmg.sh        # 生成 dist/PeekShot-v<版本>-mac-universal.dmg 和 dist/SHA256SUMS
 ```
 
-如果钥匙串里有 “Developer ID Application” 证书和名为 `peekshot` 的 `notarytool` 凭据，脚本会用它签名并公证；否则打包本机签名的版本，并给出提示。
+发布打包需要 Developer ID Application 签名身份，以及名为 `peekshot` 的 `notarytool` 钥匙串配置。可通过 `NOTARY_PROFILE` 使用其他现有配置。脚本会对应用和 DMG 分别签名和公证，并验证附加的公证票据后将发布文件放入 `dist/`。
 
 ### 代码结构
 
