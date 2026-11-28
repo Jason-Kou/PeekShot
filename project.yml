@@ -12,6 +12,10 @@ settings:
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "-"
     DEVELOPMENT_TEAM: ""
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.1
 targets:
   PeekShot:
     type: application
@@ -19,6 +23,8 @@ targets:
     sources:
       - Sources/PeekShot
       - Resources
+    dependencies:
+      - package: Sparkle
     info:
       path: Config/Info.plist
       properties:
@@ -31,6 +37,12 @@ targets:
             CFBundleURLSchemes: [$(PEEKSHOT_URL_SCHEME)]
         LSApplicationCategoryType: public.app-category.utilities
         NSHumanReadableCopyright: "Copyright © 2026 Jason Kou. MIT License."
+        SUFeedURL: https://github.com/Jason-Kou/PeekShot/releases/latest/download/appcast.xml
+        SUPublicEDKey: IhG8ZzFCfQcfqrtsyugMhswY0W3iqDHSkRn77CkNtXQ=
+        SUEnableAutomaticChecks: true
+        SUAllowsAutomaticUpdates: false
+        SUVerifyUpdateBeforeExtraction: true
+        SURequireSignedFeed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.peekshot.PeekShot

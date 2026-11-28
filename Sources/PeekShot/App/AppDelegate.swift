@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import UniformTypeIdentifiers
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -28,6 +29,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !ScreenCapturer.hasPermission, !isRunningTests {
             CGRequestScreenCaptureAccess()
         }
+        #if !DEBUG
+        if !isRunningTests { AppUpdater.shared.start() }
+        #endif
         NSLog("PeekShot: screen recording permission %@", ScreenCapturer.hasPermission ? "granted" : "missing")
     }
 
@@ -103,16 +107,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 final class StatusMenuController: NSObject, NSMenuDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let menu = NSMenu()
+    private var updateObservation: AnyCancellable?
 
     override init() {
         super.init()
-        statusItem.button?.image = Self.statusIcon()
+        updateObservation = AppUpdater.shared.$availableVersion.sink { [weak self] version in
+            self?.statusItem.button?.image = Self.statusIcon(updateAvailable: version != nil)
+            self?.statusItem.button?.toolTip = version.map { "PeekShot \($0) is available" } ?? "PeekShot"
+        }
         menu.delegate = self
         statusItem.menu = menu
     }
 
     /// The app icon's two corner brackets as a template image, so the menu bar matches the app.
-    static func statusIcon() -> NSImage {
+    static func statusIcon(updateAvailable: Bool = false) -> NSImage {
         let image = NSImage(size: CGSize(width: 18, height: 18), flipped: false) { rect in
             let frame = rect.insetBy(dx: 3.5, dy: 3.5)
             let arm: CGFloat = 6, radius: CGFloat = 2
@@ -132,6 +140,10 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
             path.lineJoinStyle = .round
             NSColor.black.setStroke()
             path.stroke()
+            if updateAvailable {
+                NSColor.black.setFill()
+                NSBezierPath(ovalIn: CGRect(x: 12, y: 12, width: 5, height: 5)).fill()
+            }
             return true
         }
         image.isTemplate = true
@@ -165,6 +177,8 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         menu.addItem(.separator())
         add("Settings…", #selector(openSettings), symbol: "gearshape")
         add("About PeekShot", #selector(openAbout), symbol: "info.circle")
+        let updater = AppUpdater.shared
+        add(updater.actionTitle, #selector(checkForUpdates), symbol: "arrow.down.circle").isEnabled = updater.canCheckForUpdates
         menu.addItem(.separator())
         add("Quit PeekShot", #selector(quit), symbol: "power")
     }
@@ -209,5 +223,6 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
 
     @objc private func openSettings() { SettingsWindowController.show() }
     @objc private func openAbout() { SettingsWindowController.show(tab: .about) }
+    @objc private func checkForUpdates() { AppUpdater.shared.checkForUpdates() }
     @objc private func quit() { NSApp.terminate(nil) }
 }

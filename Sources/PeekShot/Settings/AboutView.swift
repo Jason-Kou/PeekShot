@@ -35,7 +35,10 @@ enum AboutInfo {
     }
 }
 
+@MainActor
 struct AboutSettings: View {
+    @ObservedObject private var updater = AppUpdater.shared
+
     var body: some View {
         Form {
             Section {
@@ -52,6 +55,10 @@ struct AboutSettings: View {
                     }
                 }
                 .padding(.vertical, 4)
+                Button(action: updater.checkForUpdates) {
+                    Label(updater.actionTitle, systemImage: "arrow.down.circle")
+                }
+                .disabled(!updater.canCheckForUpdates)
             }
             Section {
                 LinkRow(title: "Source Code", detail: "github.com/Jason-Kou/PeekShot · MIT License",
