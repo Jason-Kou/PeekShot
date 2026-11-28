@@ -30,7 +30,7 @@ IMAGE="$STAGING/image"
 mkdir "$IMAGE"
 ditto dist/PeekShot.app "$IMAGE/PeekShot.app"
 ln -s /Applications "$IMAGE/Applications"
-lipo -verify_arch arm64 x86_64 "$IMAGE/PeekShot.app/Contents/MacOS/PeekShot"
+lipo "$IMAGE/PeekShot.app/Contents/MacOS/PeekShot" -verify_arch arm64 x86_64
 codesign --force --options runtime --timestamp --sign "$DEVELOPER_ID" "$IMAGE/PeekShot.app"
 codesign --verify --deep --strict "$IMAGE/PeekShot.app"
 
