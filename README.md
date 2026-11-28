@@ -58,7 +58,7 @@ If you only need to grab part of the screen, mark it up and paste it somewhere, 
 
 ### Update PeekShot
 
-PeekShot checks for updates in the background. When a version is available, click the menu bar icon with the update dot and choose **Update to PeekShot…**. You can also use **Check for Updates…** from the menu bar or **Settings → About**. Choose **Install Update** to download the update, then **Install and Relaunch** when it’s ready.
+Builds with in-app updates check for new versions in the background. When a version is available, click the menu bar icon with the update dot and choose **Update to PeekShot…**. You can also use **Check for Updates…** from the menu bar or **Settings → About**. Choose **Install Update** to download the update, then **Install and Relaunch** when it’s ready.
 
 ### Build from source
 

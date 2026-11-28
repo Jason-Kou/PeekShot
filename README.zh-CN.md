@@ -58,7 +58,7 @@ PeekShot 覆盖了 CleanShot X 日常截图的那部分流程，免费，并且�
 
 ### 更新 PeekShot
 
-PeekShot 会在后台检查更新。发现新版后，点击带圆点提示的菜单栏图标，选择 **Update to PeekShot…**。也可以从菜单栏或 **Settings → About** 选择 **Check for Updates…**。点击 **Install Update** 下载新版，等下载完成后点击 **Install and Relaunch** 安装并重新启动。
+安装支持应用内更新的版本后，PeekShot 会在后台检查新版。发现新版后，点击带圆点提示的菜单栏图标，选择 **Update to PeekShot…**。也可以从菜单栏或 **Settings → About** 选择 **Check for Updates…**。点击 **Install Update** 下载新版，等下载完成后点击 **Install and Relaunch** 安装并重新启动。
 
 ### 从源码构建
 
