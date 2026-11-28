@@ -56,6 +56,10 @@ If you only need to grab part of the screen, mark it up and paste it somewhere, 
 
 **Requirements:** macOS 14.0 or later, Apple Silicon or Intel.
 
+### Update PeekShot
+
+PeekShot checks for updates in the background. When a version is available, click the menu bar icon with the update dot and choose **Update to PeekShot…**. You can also use **Check for Updates…** from the menu bar or **Settings → About**. Click **Install Update** in the update window to download, install, and restart PeekShot.
+
 ### Build from source
 
 Requires Xcode and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
@@ -123,10 +127,12 @@ Keep a single Release copy on disk (`dist/`). The Debug build, which doubles as 
 ### Releasing
 
 ```bash
-scripts/make-dmg.sh        # builds dist/PeekShot-v<version>-mac-universal.dmg and dist/SHA256SUMS
+scripts/make-dmg.sh        # writes the notarized DMG, SHA256SUMS, and signed appcast.xml to dist/
 ```
 
-Release packaging requires a Developer ID Application signing identity and a `notarytool` keychain profile named `peekshot`. Set `NOTARY_PROFILE` to use an existing profile with a different name. The script signs and notarizes both the app and the DMG, then verifies their stapled tickets before placing the release files in `dist/`.
+Release packaging requires a Developer ID Application signing identity, a `notarytool` keychain profile named `peekshot`, and the Sparkle signing key for `app.peekshot.PeekShot` in the login keychain. Set `NOTARY_PROFILE` to use an existing profile with a different name.
+
+Increase both `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml` for each release. After verifying the DMG and its checksums, publish the DMG, `SHA256SUMS`, and `appcast.xml` together as the latest stable GitHub release under the matching `v<version>` tag. PeekShot reads the appcast from that release.
 
 ### Layout
 

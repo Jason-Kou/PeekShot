@@ -56,6 +56,10 @@ PeekShot 覆盖了 CleanShot X 日常截图的那部分流程，免费，并且�
 
 **系统要求：** macOS 14.0 及以上，Apple 芯片或 Intel 均可。
 
+### 更新 PeekShot
+
+PeekShot 会在后台检查更新。发现新版后，点击带圆点提示的菜单栏图标，选择 **Update to PeekShot…**。也可以从菜单栏或 **Settings → About** 选择 **Check for Updates…**。在更新窗口点击 **Install Update**，PeekShot 会下载并安装新版，然后重新启动。
+
 ### 从源码构建
 
 需要 Xcode 和 [XcodeGen](https://github.com/yonaskolb/XcodeGen)（`brew install xcodegen`）。
@@ -123,10 +127,12 @@ macOS 把录屏授权绑定在应用的代码签名上。`scripts/build.sh` 用�
 ### 发布
 
 ```bash
-scripts/make-dmg.sh        # 生成 dist/PeekShot-v<版本>-mac-universal.dmg 和 dist/SHA256SUMS
+scripts/make-dmg.sh        # 在 dist/ 生成已公证的 DMG、SHA256SUMS 和已签名的 appcast.xml
 ```
 
-发布打包需要 Developer ID Application 签名身份，以及名为 `peekshot` 的 `notarytool` 钥匙串配置。可通过 `NOTARY_PROFILE` 使用其他现有配置。脚本会对应用和 DMG 分别签名和公证，并验证附加的公证票据后将发布文件放入 `dist/`。
+发布打包需要 Developer ID Application 签名身份、名为 `peekshot` 的 `notarytool` 配置，以及登录钥匙串中与 `app.peekshot.PeekShot` 对应的 Sparkle 签名密钥。可通过 `NOTARY_PROFILE` 使用其他现有配置。
+
+每次发布前，在 `project.yml` 里递增 `MARKETING_VERSION` 和 `CURRENT_PROJECT_VERSION`。验证 DMG 和校验值后，把 DMG、`SHA256SUMS` 和 `appcast.xml` 一起上传到对应 `v<版本>` 标签，并发布为 GitHub 最新稳定版本。PeekShot 会从该版本读取更新信息。
 
 ### 代码结构
 
